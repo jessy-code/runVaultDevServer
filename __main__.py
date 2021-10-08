@@ -57,6 +57,4 @@ def main(argv):
 
 
 if __name__ == '__main__':
-    # stop_vault_server()
-
     main(sys.argv[1:])

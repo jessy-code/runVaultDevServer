@@ -1,4 +1,5 @@
 import os
+from os.path import isdir
 from subprocess import check_output, CalledProcessError
 from re import search
 
@@ -16,8 +17,9 @@ class VaultDevServer:
         self.server_status = False
 
     def start_vault_server(self):
-        if not os.path.isdir('vault_server_status'):
-            self.server_status = os.system("mkdir vault_server_status")
+        if isdir(Constant.OUTPUT_FOLDER):
+            os.system('rm -r ' + Constant.OUTPUT_FOLDER)
+        self.server_status = os.system("mkdir " + Constant.OUTPUT_FOLDER)
         self.server_status = os.system(Constant.RUN_SERVER_DEV)
         if self.server_status > 0:
             print('Impossible to run the Vault dev server. Please check the ' + Constant.OUTPUT_FILE_SERVER_RUN +
@@ -54,9 +56,13 @@ class VaultDevServer:
 
 
 def stop_vault_server(unseal_path=Constant.UNSEAL_PATH):
-    os.system('ps | grep vault > test_vault.txt')
-    vault_process_id = search('[0-9]* p', str(check_output('ps | grep vault', shell=True))).group().split(' ')[0]
-    os.system('kill ' + vault_process_id)
-    unset_unix_environment_variable({"VAULT_ADDR": "",
+    try:
+        os.system('ps | grep vault > test_vault.txt')
+        vault_process_id = search('[0-9]* p', str(check_output('ps | grep vault', shell=True))).group().split(' ')[0]
+        os.system('kill ' + vault_process_id)
+        unset_unix_environment_variable({"VAULT_ADDR": "",
                                      "VAULT_DEV_ROOT_TOKEN_ID": ""})
-    os.system('rm -f ' + unseal_path)
+        os.system('rm -f ' + unseal_path)
+    except CalledProcessError:
+        print("No vault server running")
+        pass
